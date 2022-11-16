@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\native\src\gtest\gtest-all.cc" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\native\src\gmock\gmock-all.cc" />
+    <ClCompile Include="PosUtilsTest.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="MoveUtilsTest.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="MovesTest.cpp" />
+    <ClCompile Include="GameStateTest.cpp" />
+    <ClCompile Include="DefenderTest.cpp">
+      <Filter>Pieces</Filter>
+    </ClCompile>
+    <ClCompile Include="DeflectorTest.cpp">
+      <Filter>Pieces</Filter>
+    </ClCompile>
+    <ClCompile Include="SwitchTest.cpp">
+      <Filter>Pieces</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{ac838ec7-b323-4847-af24-08a43a53ec23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Pieces">
+      <UniqueIdentifier>{97ff521d-476d-45ed-9243-27ab5ffc2c60}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
