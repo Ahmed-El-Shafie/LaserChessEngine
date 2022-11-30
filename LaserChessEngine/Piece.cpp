@@ -45,3 +45,7 @@ Common::Vector Piece::getDeflectedDirection(int orientation, Common::Vector inco
 
 void Piece::rotateLeft() { this->orientation = Common::mod(this->orientation - 1, this->numOrientations); }
 void Piece::rotateRight() { this->orientation = Common::mod(this->orientation + 1, this->numOrientations); }
+
+std::string Piece::getRepr() const {
+	return std::string(1, this->getPieceChar()) + std::string(this->orientation, '+');
+}

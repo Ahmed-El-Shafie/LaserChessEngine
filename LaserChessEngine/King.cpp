@@ -1,10 +1,13 @@
 #include "King.h"
 
-std::pair<SideInteraction, Common::Vector> King::getLaserInteraction(Common::Vector incomingLaserDir) {
+std::pair<SideInteraction, Common::Vector> King::getLaserInteraction(Common::Vector incomingLaserDir) const {
 	return std::make_pair(SideInteraction::HIT, Common::zeroVector);
 }
 
-std::string King::getRepr() {
-	std::string pieceStr = this->color == Common::PieceColor::BLUE ? "K" : "k";
-	return pieceStr + std::string(this->orientation, '+');
+bool King::canBeSwitched() const {
+	return false;
+}
+
+int King::getDistanceScore(Common::Vector piecePos, Common::Vector ownKingPos, Common::Vector opposingKingPos) const {
+	return 0;
 }

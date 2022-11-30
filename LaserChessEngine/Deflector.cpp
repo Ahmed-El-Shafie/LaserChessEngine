@@ -1,6 +1,6 @@
 #include "Deflector.h"
 
-std::pair<SideInteraction, Common::Vector> Deflector::getLaserInteraction(Common::Vector incomingLaserDir) {
+std::pair<SideInteraction, Common::Vector> Deflector::getLaserInteraction(Common::Vector incomingLaserDir) const {
 	int incomingOrientation = Common::directionToOrientation.at(incomingLaserDir);
 	if (incomingOrientation == this->orientation || Common::mod(incomingOrientation - 1, numOrientations) == this->orientation) {
 		return std::make_pair(SideInteraction::DEFLECT, getDeflectedDirection(this->orientation, incomingLaserDir));
@@ -10,7 +10,10 @@ std::pair<SideInteraction, Common::Vector> Deflector::getLaserInteraction(Common
 	}
 }
 
-std::string Deflector::getRepr() {
-	std::string pieceStr = this->color == Common::PieceColor::BLUE ? "B" : "b";
-	return pieceStr + std::string(this->orientation, '+');
+bool Deflector::canBeSwitched() const {
+	return true;
+}
+
+int Deflector::getDistanceScore(Common::Vector piecePos, Common::Vector ownKingPos, Common::Vector opposingKingPos) const {
+	return 750 / (piecePos - opposingKingPos).getManhattanDistance();
 }

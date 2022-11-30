@@ -4,6 +4,10 @@ Common::Vector Common::Vector::operator+(const Vector& v) const {
 	return { x + v.x, y + v.y };
 }
 
+Common::Vector Common::Vector::operator-(const Vector& v) const {
+	return { x - v.x, y - v.y };
+}
+
 bool Common::Vector::operator==(const Vector& v) const {
 	return x == v.x && y == v.y;
 }
@@ -12,6 +16,10 @@ size_t Common::Vector::HashFunction::operator()(const Vector& v) const {
 	size_t xHash = std::hash<int>{}(v.x);
 	size_t yHash = std::hash<int>{}(v.y);
 	return xHash * 37 + yHash;
+}
+
+int Common::Vector::getManhattanDistance() const {
+	return abs(x) + abs(y);
 }
 
 const Common::Vector Common::zeroVector = { 0, 0 };

@@ -13,11 +13,9 @@ struct GameState {
 
 	Common::PieceColor winner; // TODO: Implement draw
 	Common::PieceColor turn;
-	/*
-	* Need the pieces' squares to generate and apply moves and evaluate positions
-	*/
 	std::unordered_set<Square, Square::HashFunction> bluePieceSquares;
 	std::unordered_set<Square, Square::HashFunction> redPieceSquares;
 
-	Piece* removeHitPiece(Square* hitSquare);
+	std::shared_ptr<Piece> removeHitPiece(Square* hitSquare);
+	void returnHitPiece(Square* pieceSquare, std::shared_ptr<Piece> hitPiece);
 };

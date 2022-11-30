@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utility>
+#include <array>
 
 #include "Common.h"
 #include "Piece.h"
@@ -9,7 +9,7 @@ struct Square {
 	Square(Common::Vector pos, Common::PieceColor reservedColor) : piece(nullptr), pos(pos), reservedColor(reservedColor) {};
 	Square() : piece(nullptr), pos({ -1, -1 }), reservedColor(Common::PieceColor::NONE) {};
 
-	Piece* piece;
+	std::shared_ptr<Piece> piece;
 	Common::Vector pos;
 	Common::PieceColor reservedColor;
 

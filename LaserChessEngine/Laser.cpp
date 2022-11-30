@@ -2,13 +2,16 @@
 
 #include "Laser.h"
 
-std::pair<SideInteraction, Common::Vector> Laser::getLaserInteraction(Common::Vector incomingLaserDir) {
+std::pair<SideInteraction, Common::Vector> Laser::getLaserInteraction(Common::Vector incomingLaserDir) const {
 	return std::make_pair(SideInteraction::BLOCK, Common::zeroVector);
 }
 
-std::string Laser::getRepr() {
-	std::string pieceStr = this->color == Common::PieceColor::BLUE ? "L" : "l";
-	return pieceStr + std::string(this->orientation, '+');
+bool Laser::canBeSwitched() const {
+	return false;
+}
+
+int Laser::getDistanceScore(Common::Vector piecePos, Common::Vector ownKingPos, Common::Vector opposingKingPos) const {
+	return 0;
 }
 
 Common::Vector Laser::getLaserDir() {

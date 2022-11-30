@@ -10,10 +10,12 @@ namespace Common {
 		int x;
 		int y;
 		Vector operator+(const Vector& v) const;
+		Vector operator-(const Vector& v) const;
 		bool operator==(const Vector& v) const;
 		struct HashFunction {
 			size_t operator()(const Vector& v) const;
 		};
+		int getManhattanDistance() const;
 	};
 
 	extern const Vector zeroVector;
@@ -24,5 +26,5 @@ namespace Common {
 
 	extern const std::unordered_map<Vector, int, Vector::HashFunction> directionToOrientation;
 
-	extern int mod(int a, int b);
+	int mod(int a, int b);
 }

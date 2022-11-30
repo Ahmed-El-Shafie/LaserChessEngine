@@ -1,12 +1,15 @@
 #include "Switch.h"
 
-std::pair<SideInteraction, Common::Vector> Switch::getLaserInteraction(Common::Vector incomingLaserDir) {
+std::pair<SideInteraction, Common::Vector> Switch::getLaserInteraction(Common::Vector incomingLaserDir) const {
 	SideInteraction interaction = SideInteraction::DEFLECT;
 	Common::Vector newLaserDir = getDeflectedDirection(this->orientation, incomingLaserDir);
 	return std::make_pair(interaction, newLaserDir);
 }
 
-std::string Switch::getRepr() {
-	std::string pieceStr = this->color == Common::PieceColor::BLUE ? "S" : "s";
-	return pieceStr + std::string(this->orientation, '+');
+bool Switch::canBeSwitched() const {
+	return false;
+}
+
+int Switch::getDistanceScore(Common::Vector piecePos, Common::Vector ownKingPos, Common::Vector opposingKingPos) const {
+	return 1500 / (piecePos - opposingKingPos).getManhattanDistance();
 }

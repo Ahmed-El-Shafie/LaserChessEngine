@@ -91,27 +91,27 @@ namespace {
 		return rowStringErrors;
 	}
 
-	void createPiece(Piece* &piecePtr, char pieceChar, Common::PieceColor color) {
+	void createPiece(std::shared_ptr<Piece>& piecePtr, char pieceChar, Common::PieceColor color) {
 		pieceChar = tolower(pieceChar);
 		switch (pieceChar) {
 		case 'l': {
-			piecePtr = new Laser(color, 0);
+			piecePtr = std::make_shared<Laser>(color, 0);
 			break;
 		}
 		case 'k': {
-			piecePtr = new King(color, 0);
+			piecePtr = std::make_shared<King>(color, 0);
 			break;
 		}
 		case 'b': {
-			piecePtr = new Deflector(color, 0);
+			piecePtr = std::make_shared<Deflector>(color, 0);
 			break;
 		}
 		case 'd': {
-			piecePtr = new Defender(color, 0);
+			piecePtr = std::make_shared<Defender>(color, 0);
 			break;
 		}
 		case 's': {
-			piecePtr = new Switch(color, 0);
+			piecePtr = std::make_shared<Switch>(color, 0);
 			break;
 		}
 		default:
@@ -120,7 +120,7 @@ namespace {
 	}
 
 	void fillRowFromRowString(GameState* gamePtr, std::array<Square, numCols>& row, std::string rowString) {
-		Piece* currentPiece = nullptr;
+		std::shared_ptr<Piece> currentPiece = nullptr;
 		int colNum = 0;
 		for (size_t i = 0; i < rowString.length(); i++) {
 			char c = rowString.at(i);
@@ -140,6 +140,87 @@ namespace {
 				colNum += c - '0';
 			}
 		}
+	}
+
+	std::string getRowStringFromRow(std::array<Square, numCols> row) {
+		std::string rowString = "";
+		int emptySquares = 0;
+		for (int j = 0; j < numCols; j++) {
+			Square square = row[j];
+			if (square.piece) {
+				if (emptySquares > 0) {
+					rowString += std::to_string(emptySquares);
+					emptySquares = 0;
+				}
+				rowString += square.piece->getRepr();
+			}
+			else {
+				emptySquares++;
+			}
+		}
+		if (emptySquares == numCols) {
+			rowString += "*";
+		}
+		else if (emptySquares > 0) {
+			rowString += std::to_string(emptySquares);
+		}
+		return rowString;
+	}
+
+	Common::Vector findKingPos(const std::unordered_set<Square, Square::HashFunction>& pieceSquares) {
+		for (const Square& pieceSquare : pieceSquares) {
+			if (tolower(pieceSquare.piece->getPieceChar()) == 'k') {
+				return pieceSquare.pos;
+			}
+		}
+		return { -1, -1 };
+	}
+
+	int getBestinFrontOfLaserOrientation(char pieceChar, size_t laserCol) {
+		pieceChar = tolower(pieceChar);
+		if (laserCol == 0) {
+			return 0;
+		}
+		else if (pieceChar == 'b') {
+			return 2;
+		}
+		else if (pieceChar == 's') {
+			return 0;
+		}
+		else {
+			return -1;
+		}
+	}
+
+	float evaluatePieces(const std::unordered_set<Square, Square::HashFunction>& pieceSquares, Common::Vector ownKingPos, Common::Vector opposingKingPos, size_t laserCol) {
+		float score = 0;
+		float deflectingPieceInFrontOfLaserDivider = 1;
+		for (const Square& pieceSquare : pieceSquares) {
+			std::shared_ptr<Piece> piece = pieceSquare.piece;
+			char pieceChar = piece->getPieceChar();
+			score += piece->getDistanceScore(pieceSquare.pos, ownKingPos, opposingKingPos);
+			if (tolower(pieceChar) == 'b' || tolower(pieceChar) == 's') {
+				if (pieceSquare.pos.x == opposingKingPos.x || pieceSquare.pos.y == opposingKingPos.y) {
+					score += 300;
+				}
+				if (pieceSquare.pos.x == laserCol) {
+					score += 400 / deflectingPieceInFrontOfLaserDivider;
+					if (piece->getOrientation() == getBestinFrontOfLaserOrientation(pieceChar, laserCol)) {
+						score += 200 / deflectingPieceInFrontOfLaserDivider;
+					}
+					deflectingPieceInFrontOfLaserDivider *= 2;
+				}
+			}
+			Common::Vector defenderToKing = ownKingPos - pieceSquare.pos;
+			if (tolower(pieceChar) == 'd' && (defenderToKing.x == 0 || defenderToKing.y == 0)) {
+				Common::Vector unitVector = defenderToKing.x == 0 ? Common::Vector{0, defenderToKing.y / abs(defenderToKing.y)} : Common::Vector{defenderToKing.x / abs(defenderToKing.x), 0};
+				int bestOrientation = Common::directionToOrientation.at(unitVector);
+				if (piece->getOrientation() == bestOrientation) {
+					score += 80;
+				}
+			}
+		}
+		return score;
 	}
 }
 
@@ -203,32 +284,28 @@ void PosUtils::setupPosition(GameState* gamePtr, Board& board, std::string posSt
 	}
 }
 
-std::string PosUtils::getPositionStringFromBoard(const Board board) {
+std::string PosUtils::getPositionStringFromBoard(const Board& board) {
 	std::string posString = "";
 	for (int i = 0; i < numRows; i++) {
-		int emptySquares = 0;
-		for (int j = 0; j < numCols; j++) {
-			Square square = board[i][j];
-			if (square.piece) {
-				if (emptySquares > 0) {
-					posString += std::to_string(emptySquares);
-					emptySquares = 0;
-				}
-				posString += square.piece->getRepr();
-			}
-			else {
-				emptySquares++;
-			}
-		}
-		if (emptySquares == numCols) {
-			posString += "*";
-		}
-		else if (emptySquares > 0) {
-			posString += std::to_string(emptySquares);
-		}
+		posString += getRowStringFromRow(board[i]);
 		if (i != numRows - 1) {
 			posString += "/";
 		}
 	}
 	return posString;
+}
+
+float PosUtils::evaluatePosition(const Board& board, const GameState& gameState) {
+	if (gameState.winner == Common::PieceColor::BLUE) {
+		return std::numeric_limits<float>::max();
+	}
+	else if (gameState.winner == Common::PieceColor::RED) {
+		return std::numeric_limits<float>::lowest();
+	}
+	float score = 0;
+	Common::Vector blueKingPos = findKingPos(gameState.bluePieceSquares);
+	Common::Vector redKingPos = findKingPos(gameState.redPieceSquares);
+	score += evaluatePieces(gameState.bluePieceSquares, blueKingPos, redKingPos, numCols - 1);
+	score -= evaluatePieces(gameState.redPieceSquares, redKingPos, blueKingPos, 0);
+	return score / 100;
 }

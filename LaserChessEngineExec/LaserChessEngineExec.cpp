@@ -21,9 +21,8 @@ void handleTurnInput(std::string input, GameState* gamePtr, Board& board) {
 				move->applyMove(board, gamePtr);
 				Square* hitSquare = MoveUtils::laserHit(board, gamePtr->turn);
 				if (hitSquare) {
-					Piece* hitPiece = gamePtr->removeHitPiece(hitSquare);
+					std::shared_ptr<Piece> hitPiece = gamePtr->removeHitPiece(hitSquare);
 					std::cout << "Piece " + hitPiece->getRepr() << " at Row " << std::to_string(hitSquare->pos.y + 1) << " Column " << std::to_string(hitSquare->pos.x + 1) << " has been destroyed\n";
-					delete hitPiece;
 				}
 				gamePtr->turn = gamePtr->turn == Common::PieceColor::BLUE ? Common::PieceColor::RED : Common::PieceColor::BLUE;
 				break;
@@ -32,7 +31,27 @@ void handleTurnInput(std::string input, GameState* gamePtr, Board& board) {
 		}
 	}
 	else if (input == "AI") {
-		std::cout << "Not yet implemented\n"; //TODO
+		while (true) {
+			std::string evaluationDepthStr;
+			std::cout << "Please input desired evaluation depth:";
+			std::getline(std::cin, evaluationDepthStr);
+			int evaluationDepth;
+			try {
+				evaluationDepth = std::stoi(evaluationDepthStr);
+			}
+			catch (std::invalid_argument&) {
+				std::cout << "Input is not valid integer" << std::endl;
+				continue;
+			}
+			if (evaluationDepth <= 0) {
+				std::cout << "Depth must be integer greater than 0" << std::endl;
+				continue;
+			}
+			MoveUtils::EvaluationResult evaluationResult = MoveUtils::findBestMove(board, *gamePtr, evaluationDepth);
+			std::cout << "Best move is: " << evaluationResult.move->getMoveString() << std::endl;
+			std::cout << "Position evaluation is: " << evaluationResult.evaluation << std::endl;
+			break;
+		}
 	}
 	else {
 		std::cout << "Input must be PLAY or AI\n";
@@ -75,7 +94,7 @@ int main(int argc, char* argv[])
 
 	while (gamePtr->winner == Common::PieceColor::NONE) {
 		std::string turnString = gamePtr->turn == Common::PieceColor::BLUE ? "BLUE" : "RED";
-		std::cout << turnString << " to play.\nWould you like to input a move (PLAY), or let the engine play it for you (AI):";
+		std::cout << turnString << " to play.\nWould you like to input a move (PLAY), or let the engine suggest a move for you (AI):";
 		std::string line;
 		std::getline(std::cin, line);
 		handleTurnInput(line, gamePtr, board);

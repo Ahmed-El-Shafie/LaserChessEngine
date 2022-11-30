@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "gmock/gmock.h"
 #include "Moves.h"
 #include "PosUtils.h"
 
@@ -80,12 +80,20 @@ TEST(MovesTests, ShiftMoveApplyMove) {
 	GameState gameState = GameState();
 	PosUtils::setupPosition(&gameState, board, "l9/1k8/*/*/*/*/1K8/9L");
 	Moves::ShiftMove move = Moves::ShiftMove(Common::Vector{ 1, 1 }, Common::Vector{ 2, 2 });
-	Piece* piece = board[1][1].piece;
+	std::shared_ptr<Piece> piece = board[1][1].piece;
 	move.applyMove(board, &gameState);
 	EXPECT_THAT(board[1][1].piece, testing::IsNull());
 	EXPECT_THAT(gameState.redPieceSquares, testing::Not(testing::Contains(board[1][1])));
 	EXPECT_EQ(board[2][2].piece, piece);
 	EXPECT_THAT(gameState.redPieceSquares, testing::Contains(board[2][2]));
+}
+
+TEST(MovesTests, ShiftMoveGetOppositeMove) {
+	Moves::ShiftMove move = Moves::ShiftMove(Common::Vector{ 3, 3 }, Common::Vector{ 4, 4 });
+	std::unique_ptr<Moves::Move> oppositeMove = move.getOppositeMove();
+	Moves::ShiftMove* oppositeShiftMove = dynamic_cast<Moves::ShiftMove*>(oppositeMove.get());
+	EXPECT_EQ(move.startPos, oppositeShiftMove->endPos);
+	EXPECT_EQ(move.endPos, oppositeShiftMove->startPos);
 }
 
 TEST(MovesTests, RotateMoveGetMoveFromStringValid) {
@@ -151,6 +159,14 @@ TEST(MovesTests, RotateMoveApplyMove) {
 	Moves::RotateMove move = Moves::RotateMove(Common::Vector{ 1, 1 }, Common::RotationDirection::RIGHT);
 	move.applyMove(board, &gameState);
 	EXPECT_EQ(board[1][1].piece->getOrientation(), 1);
+}
+
+TEST(MovesTests, RotateMoveGetOppositeMove) {
+	Moves::RotateMove move = Moves::RotateMove(Common::Vector{ 3, 3 }, Common::RotationDirection::LEFT);
+	std::unique_ptr<Moves::Move> oppositeMove = move.getOppositeMove();
+	Moves::RotateMove* oppositeRotateMove = dynamic_cast<Moves::RotateMove*>(oppositeMove.get());
+	EXPECT_EQ(move.piecePos, oppositeRotateMove->piecePos);
+	EXPECT_EQ(Common::RotationDirection::RIGHT, oppositeRotateMove->rotationDirection);
 }
 
 TEST(MovesTests, SpecialMoveGetMoveFromStringValid) {
@@ -237,6 +253,10 @@ TEST(MovesTests, SpecialMoveIsLegalMoveNoSubKing) {
 	checkInvalidSpecialMove("l9/1sk7/*/*/*/*/*/9L", Common::Vector{ 1, 1 }, Common::Vector{ 2, 1 });
 }
 
+TEST(MovesTests, SpecialMoveIsLegalMoveNoSubLaser) {
+	checkInvalidSpecialMove("l9/1sk7/*/*/*/*/*/9L", Common::Vector{ 1, 1 }, Common::zeroVector);
+}
+
 TEST(MovesTests, SpecialMoveIsLegalMoveReservedEndSquare) {
 	checkInvalidSpecialMove("lB8/1s8/*/*/*/*/*/9L", Common::Vector{ 1, 1 }, Common::Vector{ 0, 1 });
 }
@@ -250,8 +270,8 @@ TEST(MovesTests, SpecialMoveApplyMoveSameColour) {
 	GameState gameState = GameState();
 	PosUtils::setupPosition(&gameState, board, "l9/1sb7/*/*/*/*/*/9L");
 	Moves::SpecialMove move = Moves::SpecialMove(Common::Vector{ 1, 1 }, Common::Vector{ 2, 1 });
-	Piece* startPiece = board[1][1].piece;
-	Piece* endPiece = board[1][2].piece;
+	std::shared_ptr<Piece> startPiece = board[1][1].piece;
+	std::shared_ptr<Piece> endPiece = board[1][2].piece;
 	move.applyMove(board, &gameState);
 	EXPECT_EQ(board[1][1].piece, endPiece);
 	EXPECT_EQ(board[1][2].piece, startPiece);
@@ -264,8 +284,8 @@ TEST(MovesTests, SpecialMoveApplyMoveDifferentColours) {
 	GameState gameState = GameState();
 	PosUtils::setupPosition(&gameState, board, "l9/1sB7/*/*/*/*/*/9L");
 	Moves::SpecialMove move = Moves::SpecialMove(Common::Vector{ 1, 1 }, Common::Vector{ 2, 1 });
-	Piece* startPiece = board[1][1].piece;
-	Piece* endPiece = board[1][2].piece;
+	std::shared_ptr<Piece> startPiece = board[1][1].piece;
+	std::shared_ptr<Piece> endPiece = board[1][2].piece;
 	move.applyMove(board, &gameState);
 	EXPECT_EQ(board[1][1].piece, endPiece);
 	EXPECT_EQ(board[1][2].piece, startPiece);
@@ -273,4 +293,12 @@ TEST(MovesTests, SpecialMoveApplyMoveDifferentColours) {
 	EXPECT_TRUE(gameState.bluePieceSquares.find(board[1][2]) == gameState.bluePieceSquares.end());
 	EXPECT_FALSE(gameState.redPieceSquares.find(board[1][2]) == gameState.redPieceSquares.end());
 	EXPECT_TRUE(gameState.redPieceSquares.find(board[1][1]) == gameState.redPieceSquares.end());
+}
+
+TEST(MovesTests, SpecialMoveGetOppositeMove) {
+	Moves::SpecialMove move = Moves::SpecialMove(Common::Vector{ 3, 3 }, Common::Vector{ 4, 4 });
+	std::unique_ptr<Moves::Move> oppositeMove = move.getOppositeMove();
+	Moves::SpecialMove* oppositeSpecialMove = dynamic_cast<Moves::SpecialMove*>(oppositeMove.get());
+	EXPECT_EQ(move.startPos, oppositeSpecialMove->endPos);
+	EXPECT_EQ(move.endPos, oppositeSpecialMove->startPos);
 }
