@@ -39,7 +39,7 @@ namespace {
 		oppositeMove->applyMove(board, &gameState);
 	}
 
-	MoveUtils::EvaluationResult findBestMovePruning(Board& board, GameState& gameState, size_t movesRemaining, size_t maxDepth, float alpha, float beta, std::unordered_map<std::string, MoveUtils::EvaluationResult>& transpositionTable) {
+	MoveUtils::EvaluationResult findBestMovePruning(Board& board, GameState& gameState, size_t movesRemaining, const size_t maxDepth, const float alpha, const float beta, std::unordered_map<std::string, MoveUtils::EvaluationResult>& transpositionTable) {
 		const int numPieces = gameState.bluePieceSquares.size() + gameState.redPieceSquares.size();
 		if (movesRemaining == 0 || gameState.winner != Common::PieceColor::NONE || (numPieces > 20 && maxDepth - movesRemaining == 4)) {
 			// Inserting this into transposition table doesn't seem to improve performance
@@ -54,6 +54,8 @@ namespace {
 		std::unordered_set<Square, Square::HashFunction> pieceSquares;
 		float bestEvaluation;
 		std::function<bool(MoveUtils::EvaluationResult, MoveUtils::EvaluationResult)> minimaximizer;
+		float alphaLocal = alpha;
+		float betaLocal = beta;
 		float* pruningParam;
 		if (currentTurn == Common::PieceColor::BLUE) {
 			pieceSquares = gameState.bluePieceSquares;
@@ -61,7 +63,7 @@ namespace {
 			minimaximizer = [currentTurn](MoveUtils::EvaluationResult current, MoveUtils::EvaluationResult overallBest) {
 				return current.evaluation > overallBest.evaluation;
 			};
-			pruningParam = &alpha;
+			pruningParam = &alphaLocal;
 		}
 		else {
 			pieceSquares = gameState.redPieceSquares;
@@ -69,7 +71,7 @@ namespace {
 			minimaximizer = [currentTurn](MoveUtils::EvaluationResult current, MoveUtils::EvaluationResult overallBest) {
 				return current.evaluation < overallBest.evaluation;
 			};
-			pruningParam = &beta;
+			pruningParam = &betaLocal;
 		}
 		std::vector<MoveUtils::EvaluationResult> depth1Evaluations;
 		for (const Square& square : pieceSquares) {
@@ -84,11 +86,11 @@ namespace {
 		MoveUtils::EvaluationResult bestEvaluationResult = { nullptr, bestEvaluation, movesRemaining };
 		int i = 0;
 		for (MoveUtils::EvaluationResult eval : depth1Evaluations) {
-			if (numPieces > 10 && maxDepth - movesRemaining == 5 && i > 5) {
+			if (numPieces > 10 && maxDepth - movesRemaining >= 6 && i > 5) {
 				break;
 			}
 			std::pair<Square*, std::shared_ptr<Piece>> hitSquareAndPiece = makeMove(board, gameState, eval.move);
-			MoveUtils::EvaluationResult moveEval = findBestMovePruning(board, gameState, movesRemaining - 1, maxDepth, alpha, beta, transpositionTable);
+			MoveUtils::EvaluationResult moveEval = findBestMovePruning(board, gameState, movesRemaining - 1, maxDepth, alphaLocal, betaLocal, transpositionTable);
 			if (!bestEvaluationResult.move || minimaximizer(moveEval, bestEvaluationResult)) {
 				bestEvaluationResult = { eval.move, moveEval.evaluation, moveEval.movesRemaining + 1 };
 				*pruningParam = moveEval.evaluation;
