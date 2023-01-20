@@ -19,10 +19,23 @@ Hi! This program is an engine designed to help you find the best move in any pos
     * **Deflector** has 4 orientations. The first one is where the mirror faces up-right.
     * **Switch** has 2 orientations. The first one is the mirrors facing up-right and down-left.
 
+## Setup Instructions
+1. Clone the repo into Visual Studio.
+2. Open the solution.
+3. Right-click Solution 'LaserChessEngine' > Properties > Startup Project > Set "Single startup project" to LaserChessEngineExec.
+4. Right-click LaserChessEngine project > Properties > General > Set "Configuration Type" to static library (.lib).
+5. LaserChessEngineExec & LaserChessEngineTest should be "Application (.exe)"
+6. Right-click on any project > Configuration Manager > Set "Active solution configuration" to "Release" (performance reasons) and "Active solution platform" to "x86".
+
 ## How to Use
-1. Run **LaserChessEngineExec**, making sure to supply a position string and the current player's turn.
-2. Choose whether you want to input your own move (PLAY), or let the engine suggest a move (AI).
-3. Follow the instructions for either option.
+1. Supply arguments to LaserChessEngineExec through "Properties" > "Debugging" > Command Arguments.
+	* The first argument is a string representing the current position of the board. The program will verify that this is a valid position for a standard
+	Laser Chess board.
+	* The second argument is the current player's turn. It should be "BLUE" or "RED".
+2. Debug > Start Without Debugging.
+3. Choose whether you want to input your own move (PLAY), or let the engine suggest a move (AI).
+4. Follow the instructions for either option.
+5. You can also run the tests through the test explorer in VS.
 
 ## Extras
 * For performance reasons, the engine will sometimes limit the search. The depth you supply is simply the maximum evaluation depth. I would suggest using a depth of 3 when there are a lot of pieces on the board, or you 'll be waiting quite a while for each move.
